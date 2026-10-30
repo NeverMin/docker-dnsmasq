@@ -57,7 +57,7 @@ jobs:
         run: docker run --rm --entrypoint dnsmasq local/dnsmasq:ci --test
 
       - name: Verify webproc executable
-        run: docker run --rm --entrypoint webproc local/dnsmasq:ci --help
+        run: docker run --rm --entrypoint webproc local/dnsmasq:ci --version
 
       - name: Publish validated image
         uses: docker/build-push-action@v6
