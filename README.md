@@ -5,6 +5,64 @@ dnsmasq in a docker container, configurable via a [simple web UI](https://github
 [![Docker Pulls](https://img.shields.io/docker/pulls/jpillora/dnsmasq.svg)][dockerhub]
 [![Image Size](https://images.microbadger.com/badges/image/jpillora/dnsmasq.svg)][dockerhub]
 
+### Build with GitHub Actions (Ubuntu docker.io)
+
+If your Ubuntu host cannot reach Docker Hub during a local build, use
+[the GitHub Actions workflow](.github/workflows/docker-image.yml) to build on a
+GitHub-hosted runner and publish to GitHub Container Registry (GHCR).
+The Ubuntu host only needs access to GHCR to pull the finished image.
+The image is currently **linux/amd64 only**, matching the webproc binary in
+the Dockerfile.
+
+1. Push this repository, including the workflow, to your own GitHub repository.
+   Pushes to `main` or `master` trigger a build. You can also open **Actions >
+   Build and publish Docker image > Run workflow** once the workflow is on
+   the default branch. For forks, enable GitHub Actions if prompted.
+2. The workflow uses the built-in `GITHUB_TOKEN` with `packages: write`;
+   no Docker Hub account or manually configured publishing token is needed.
+   It checks the dnsmasq configuration and webproc executable before publishing.
+3. Images are published as `ghcr.io/<owner>/<repository>:sha-<full-commit-sha>`.
+   Builds from the default branch also publish `:latest`. Names are lowercase;
+   for this repository the image is `ghcr.io/nevermin/docker-dnsmasq:latest`.
+4. For anonymous pulls, change the package visibility to **Public** in GitHub's
+   package settings (new packages are private by default). For private packages,
+   log in on Ubuntu using `sudo docker login ghcr.io -u YOUR_GITHUB_USERNAME`
+   and supply a personal access token (classic) with `read:packages` when prompted.
+
+On Ubuntu, install Docker if needed and pull the image:
+
+```bash
+sudo apt update
+sudo apt install -y docker.io
+sudo systemctl enable --now docker
+sudo docker pull ghcr.io/nevermin/docker-dnsmasq:latest
+```
+
+Replace the owner/repository if using a fork. Prepare `/opt/dnsmasq.conf` as
+described below, replacing the example internal addresses with your own, then run:
+
+```bash
+# Replace this with the Ubuntu host's fixed LAN address.
+DNS_IP=192.168.1.100
+sudo docker run -d \
+  --name dnsmasq \
+  --restart unless-stopped \
+  -p "$DNS_IP:53:53/udp" \
+  -p "$DNS_IP:53:53/tcp" \
+  -p 127.0.0.1:5380:8080 \
+  -v /opt/dnsmasq.conf:/etc/dnsmasq.conf \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  -e HTTP_USER=admin \
+  -e HTTP_PASS='REPLACE_WITH_A_STRONG_PASSWORD' \
+  ghcr.io/nevermin/docker-dnsmasq:latest
+```
+
+Both UDP and TCP port 53 are needed for DNS. The web UI is available only on
+the host at `http://127.0.0.1:5380`; use SSH forwarding for remote administration.
+Do not forward DNS port 53 from the public Internet. Use the commit-specific
+image tag instead of `latest` when you need a fixed deployment version.
+
 ### Usage
 
 1. Create a [`/opt/dnsmasq.conf`](http://oss.segetech.com/intra/srv/dnsmasq.conf) file on the Docker host
