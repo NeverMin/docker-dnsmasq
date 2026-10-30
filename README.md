@@ -38,7 +38,7 @@ sudo systemctl enable --now docker
 sudo docker pull ghcr.io/nevermin/docker-dnsmasq:latest
 ```
 
-Replace the owner/repository if using a fork. Prepare `/opt/dnsmasq.conf` as
+Replace the owner/repository if using a fork. Prepare `/opt/dnsmasq/dnsmasq.conf` as
 described below, replacing the example internal addresses with your own, then run:
 
 ```bash
@@ -50,7 +50,7 @@ sudo docker run -d \
   -p "$DNS_IP:53:53/udp" \
   -p "$DNS_IP:53:53/tcp" \
   -p 127.0.0.1:5380:8080 \
-  -v /opt/dnsmasq.conf:/etc/dnsmasq.conf \
+  -v /opt/dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf \
   --log-opt max-size=10m \
   --log-opt max-file=3 \
   -e HTTP_USER=admin \

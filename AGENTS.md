@@ -181,3 +181,4 @@ The container supports these environment variables:
 - Docker image size should be kept minimal (Alpine-based)
 - Security scanning is automated via GitHub Actions
 - No package.json, Makefile, or traditional build system exists
+- My dev pc need http proxy `https_proxy='http://192.168.1.240:3128'` for access github and google.
